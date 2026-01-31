@@ -78,6 +78,44 @@ These are **not hardcoded values** and follow the specification.
 - The framer or physical layer does **not** perform segmentation.
 
 ---
+## 8. Testbench Description
+
+The testbench verifies frame generation for three different payload scenarios:
+
+1. **Payload length < 8416 bytes**  
+   Payload data is transmitted first, followed by PRBS padding.
+
+2. **Payload length = 8416 bytes**  
+   The entire payload is transmitted without any padding.
+
+3. **Payload length = 0 bytes**  
+   The payload field is completely filled with PRBS data.
+
+All three frames are transmitted back-to-back in a single simulation run.
+
+---
+
+## Continuous Frame Detection
+
+The testbench checks for continuous frame transmission across the three cases.
+
+Continuity is determined based on the behavior of the `frame_valid` signal:
+- A frame sequence is considered continuous if `frame_valid` does not remain deasserted for more than a defined threshold between frames.
+- The allowed deasserted duration (gap threshold) is derived from the RTL implementation, since the FSM may intentionally introduce a fixed inter-frame delay (for example, via DONE or IDLE states).
+- A gap is flagged only if the low duration of `frame_valid` exceeds this expected RTL-defined delay.
+
+This approach ensures:
+- Expected FSM transitions are tolerated.
+- Any unintended stall or excessive inter-frame gap is detected as an error.
+
+---
+
+## Pass Criteria
+
+The test is considered **PASS** if:
+- All three frames are transmitted sequentially.
+- Payload and PRBS behavior matches the expected scenario.
+- No excessive gap is detected between consecutive frames.
 
 ## Summary  
 This framer:
